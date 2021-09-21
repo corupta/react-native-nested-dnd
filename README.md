@@ -42,9 +42,18 @@ Keys being unique is critical for the package to work.
 
 
 ### Performance（GIF）
-TODO WIP
+| [NestedDNDTest](https://github.com/corupta/react-native-nested-dnd/blob/master/examples/examples/NestedDNDTest.js) |
+| ------ |
+| ![NestedDNDTest](https://github.com/corupta/react-native-nested-dnd/blob/master/img/NestedDNDTest.gif?raw=true) |
+
 
 ### API
 
 #### NestedDND
 TODO WIP
+
+
+### Known Issues
+
+* If a group is empty, cannot drag and drop an item inside it, for some reason.
+* When a group is dragged, due to the nature of my hacky implementation it blinks at first. Unfortunately, this won't be fixed. To fix it one might need to come up with a ground-up implementation that supports nested drag/drop. (Need to re-write current DND core) 
