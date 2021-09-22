@@ -22,27 +22,62 @@ class CustomAnySizeDragSortableView extends AnySizeDragSortableView {
       if (fixedItemKeys && fixedItemKeys.includes(key)) {
         return;
       }
-      if (item.isGroup) {
-        this.layoutMap.clear();
-      }
+      superStartTouch(item, index);
       this.props.onDragStart(item, index);
-      setTimeout(() => {
-        const realIndex = this.props.dataSource.indexOf(item);
-        superStartTouch(item, realIndex);
-      }, 10);
     };
     const superMove = this.move;
     this.move = (fromKey, toKey, vy, isDiffline) => {
       const fixedItemKeys = this.props.fixedItemKeys;
-      if (fixedItemKeys && fixedItemKeys.includes(toKey)) {
+      const fromIndex = this.keyToIndexMap.get(fromKey);
+      const fromItem = this.props.dataSource[fromIndex];
+      let finalToKey = toKey;
+      if (fromItem.isGroup) {
+        let toIndex = this.keyToIndexMap.get(toKey);
+        if (toIndex < fromIndex) {
+          while (
+            this.props.dataSource[toIndex] &&
+            !this.props.dataSource[toIndex].isGroup
+          ) {
+            --toIndex;
+          }
+          // if (toIndex < 0) return;
+          finalToKey = this.props.keyExtractor(this.props.dataSource[toIndex]);
+          if (fixedItemKeys && fixedItemKeys.includes(finalToKey)) {
+            return;
+          }
+        } else {
+          ++toIndex;
+          while (
+            this.props.dataSource[toIndex] &&
+            !this.props.dataSource[toIndex].isGroup
+          ) {
+            ++toIndex;
+          }
+          --toIndex;
+          finalToKey = this.props.keyExtractor(this.props.dataSource[toIndex]);
+          while (
+            this.props.dataSource[toIndex] &&
+            !this.props.dataSource[toIndex].isGroup
+          ) {
+            --toIndex;
+          }
+          const toGroupKey = this.props.keyExtractor(
+            this.props.dataSource[toIndex],
+          );
+          if (fixedItemKeys && fixedItemKeys.includes(toGroupKey)) {
+            return;
+          }
+        }
+      } else if (fixedItemKeys && fixedItemKeys.includes(toKey)) {
         return;
       }
-      superMove(fromKey, toKey, vy, isDiffline);
+      superMove(fromKey, finalToKey, vy, isDiffline);
     };
   }
 }
 
 const defaultKeyExtractor = props => props.key;
+const countExtractor = props => props.count || 1;
 
 const NestedDND = props => {
   const {
@@ -66,13 +101,18 @@ const NestedDND = props => {
 
   const dragSortableRef = useRef();
 
-  const [itemDataSource, groupDataSource] = useRefMemo(() => {
+  const [itemDataSource] = useRefMemo(() => {
     const nextItems = [];
     const nextGroups = [];
     groups.forEach(group => {
       const groupKey = groupKeyExtractor(group);
       const groupItems = group[groupToItemsKey];
-      const groupData = {key: `g-${groupKey}`, data: group, isGroup: true};
+      const groupData = {
+        key: `g-${groupKey}`,
+        data: group,
+        isGroup: true,
+        count: groupItems.length + 1,
+      };
       nextItems.push(groupData);
       nextGroups.push(groupData);
       groupItems.forEach(groupItem => {
@@ -88,11 +128,10 @@ const NestedDND = props => {
   const mode = movingItem ? (movingItem.isGroup ? 'group' : 'item') : null;
 
   const [tmpItemData, setTmpItemData] = useState(itemDataSource);
-  const [tmpGroupData, setTmpGroupData] = useState(groupDataSource);
 
   const fixedItemKeys = useRefMemo(() => {
     const res = [];
-    (mode === 'group' ? tmpGroupData : tmpItemData).forEach(item => {
+    tmpItemData.forEach(item => {
       if (item.data.isFixed) {
         res.push(item.key);
       }
@@ -104,10 +143,6 @@ const NestedDND = props => {
     setTmpItemData(itemDataSource);
   }, [itemDataSource, setTmpItemData]);
 
-  useEffect(() => {
-    setTmpGroupData(groupDataSource);
-  }, [groupDataSource, setTmpGroupData]);
-
   const onDragStart = useCallback(
     item => {
       setMovingItem(item);
@@ -116,30 +151,29 @@ const NestedDND = props => {
   );
 
   const onDragEnd = useCallback(() => {
+    const nextGroups = [];
+    tmpItemData.forEach(({data, isGroup}) => {
+      if (isGroup) {
+        nextGroups.push({...data, [groupToItemsKey]: []});
+      } else {
+        nextGroups[nextGroups.length - 1][groupToItemsKey].push(data);
+      }
+    });
     if (mode === 'group') {
-      updateGroups(tmpGroupData.map(({data}) => data));
+      updateGroups(nextGroups);
     } else if (mode === 'item') {
-      const nextGroups = [];
-      tmpItemData.forEach(({data, isGroup}) => {
-        if (isGroup) {
-          nextGroups.push({...data, [groupToItemsKey]: []});
-        } else {
-          nextGroups[nextGroups.length - 1][groupToItemsKey].push(data);
-        }
-      });
       const finalGroups = [];
-      groupDataSource.forEach((group, index) => {
+      groups.forEach((group, index) => {
         const nextGroup = nextGroups[index];
         let groupItemsChanged =
-          group.data[groupToItemsKey].length !==
-          nextGroup[groupToItemsKey].length;
+          group[groupToItemsKey].length !== nextGroup[groupToItemsKey].length;
         if (!groupItemsChanged) {
           for (
             let itemIndex = 0;
             itemIndex < nextGroup[groupToItemsKey].length;
             ++itemIndex
           ) {
-            const prevItem = group.data[groupToItemsKey][itemIndex];
+            const prevItem = group[groupToItemsKey][itemIndex];
             const nextItem = nextGroup[groupToItemsKey][itemIndex];
             if (itemKeyExtractor(prevItem) !== itemKeyExtractor(nextItem)) {
               groupItemsChanged = true;
@@ -150,44 +184,29 @@ const NestedDND = props => {
         if (groupItemsChanged) {
           finalGroups.push(nextGroup);
         } else {
-          finalGroups.push(group.data);
+          finalGroups.push(group);
         }
       });
       updateGroups(finalGroups);
     }
     setMovingItem(null);
-  }, [
-    mode,
-    setMovingItem,
-    tmpItemData,
-    tmpGroupData,
-    groupToItemsKey,
-    updateGroups,
-  ]);
+  }, [mode, setMovingItem, tmpItemData, groups, groupToItemsKey, updateGroups]);
 
   const render = useCallback(
     (renderProps, index) => {
       let children;
-      if (mode === 'group') {
-        children = (
-          <View style={styles.groupContainer}>
-            {renderGroupHeader(renderProps.data)}
-            {renderProps.data[groupToItemsKey].map(item => (
-              <View key={itemKeyExtractor(item)}>{renderItem(item)}</View>
-            ))}
-          </View>
-        );
-      } else if (renderProps.isGroup) {
+      if (renderProps.isGroup) {
         children = renderGroupHeader(renderProps.data);
       } else {
         children = renderItem(renderProps.data);
       }
       return (
         <TouchableOpacity
-          onLongPress={() =>
-            dragSortableRef.current.startTouch(renderProps, index)
-          }
+          onLongPress={() => {
+            dragSortableRef.current.startTouch(renderProps, index);
+          }}
           onPress={() => {
+            console.log('woo');
             const onPress = renderProps.isGroup
               ? onGroupHeaderPress
               : onItemPress;
@@ -211,16 +230,23 @@ const NestedDND = props => {
     ],
   );
 
+  const onDataChange = useCallback(
+    (nextData, callback) => {
+      // console.log('nextdata', nextData);
+      setTmpItemData(nextData);
+      setTimeout(callback, 4);
+    },
+    [setTmpItemData],
+  );
+
   return (
     <CustomAnySizeDragSortableView
       ref={dragSortableRef}
-      dataSource={mode === 'group' ? tmpGroupData : tmpItemData}
+      dataSource={tmpItemData}
       keyExtractor={defaultKeyExtractor}
+      countExtractor={countExtractor}
       renderItem={render}
-      onDataChange={(nextData, callback) => {
-        (mode === 'group' ? setTmpGroupData : setTmpItemData)(nextData);
-        setTimeout(callback, 4);
-      }}
+      onDataChange={onDataChange}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       fixedItemKeys={fixedItemKeys}

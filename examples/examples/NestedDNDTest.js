@@ -12,6 +12,7 @@ const styles = StyleSheet.create({
   },
   movingStyle: {
     opacity: 0.9,
+    backgroundColor: 'red',
   },
   headerStyle: {
     backgroundColor: '#88dd88',
@@ -53,6 +54,10 @@ const sampleData = [
   {
     title: 'Group3',
     items: [{title: 'Item6'}],
+  },
+  {
+    title: 'Group4',
+    items: [{title: 'Item7'}, {title: 'Fixed Item8', isFixed: true}],
   },
 ];
 
