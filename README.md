@@ -42,6 +42,11 @@ Keys being unique is critical for the package to work.
 
 
 ### Examples（with GIF）
+Go to `examples/examples` folder
+You can see the current examples here.
+Go to `examples/App.js`, switch between different exports to try different examples.
+You can run react-native within inside `examples/` folder.
+
 * Please, check out the examples for how to use.
 
 | [NestedDNDTest](https://github.com/corupta/react-native-nested-dnd/blob/master/examples/examples/NestedDNDTest.js) |
