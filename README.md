@@ -86,5 +86,5 @@ isRequired if there is a * in the name field
 
 ### Roadmap
 [X] Make the underlying core support multiple item push
-[ ] Prevent underlying core's layout animation applying to flying item.
+[ ] Prevent underlying core's layout animation applying to flying item. (Replace LayoutAnimation with [re-animated](https://docs.swmansion.com/react-native-reanimated/docs/api/LayoutAnimations/layoutTransitions))
 
