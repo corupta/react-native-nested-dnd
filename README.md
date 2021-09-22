@@ -86,5 +86,8 @@ isRequired if there is a * in the name field
 
 ### Roadmap
 [X] Make the underlying core support multiple item push
-[ ] Prevent underlying core's layout animation applying to flying item. (Replace LayoutAnimation with [re-animated](https://docs.swmansion.com/react-native-reanimated/docs/api/LayoutAnimations/layoutTransitions))
+[ ] Prevent underlying core's layout animation applying to flying item. (Replace LayoutAnimation with [re-animated](https://docs.swmansion.com/react-native-reanimated/docs/api/LayoutAnimations/layoutTransitions)). 
+    [X] Did the replacement but it looks like current reanimated doesn't work well with rn 0.65.1 
+    [ ] It is being actively developed, so let's wait for it to be stabilized. 
+        * (When trying to run example `I get error Invariant Violation: `new NativeEventEmitter()` requires a non-null argument.`)
 
