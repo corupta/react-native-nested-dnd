@@ -81,5 +81,10 @@ isRequired if there is a * in the name field
 
 ### Known Issues
 
-* If a group is empty, cannot drag and drop an item inside it, for some reason.
-* When a group is dragged, due to the nature of my hacky implementation it blinks at first. Unfortunately, this won't be fixed. To fix it one might need to come up with a ground-up implementation that supports nested drag/drop. (Need to re-write current DND core) 
+* If a group is empty, cannot drag and drop an item inside it, for some reason. (I guess, need to update core so that it will support different heights better)
+~~* When a group is dragged, due to the nature of my hacky implementation it blinks at first. Unfortunately, this won't be fixed. To fix it one might need to come up with a ground-up implementation that supports nested drag/drop. (Need to re-write current DND core)~~ 
+
+### Roadmap
+[X] Make the underlying core support multiple item push
+[ ] Prevent underlying core's layout animation applying to flying item.
+
