@@ -240,9 +240,9 @@ NestedDND.propTypes = {
   updateGroups: PropTypes.func.isRequired,
   renderItem: PropTypes.func.isRequired,
   renderGroupHeader: PropTypes.func.isRequired,
-  groupKeyExtractor: PropTypes.func.isRequired,
-  itemKeyExtractor: PropTypes.func.isRequired,
-  groupToItemsKey: PropTypes.string.isRequired,
+  groupKeyExtractor: PropTypes.func,
+  itemKeyExtractor: PropTypes.func,
+  groupToItemsKey: PropTypes.string,
   onGroupHeaderPress: PropTypes.func,
   onItemPress: PropTypes.func,
   // expose below props directly
@@ -257,6 +257,7 @@ NestedDND.propTypes = {
 NestedDND.defaultProps = {
   groupKeyExtractor: defaultKeyExtractor,
   itemKeyExtractor: defaultKeyExtractor,
+  groupToItemsKey: 'items',
 };
 
 export default NestedDND;

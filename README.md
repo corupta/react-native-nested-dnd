@@ -41,16 +41,37 @@ Keys being unique is critical for the package to work.
 
 
 
-### Performance（GIF）
+### Examples（with GIF）
+* Please, check out the examples for how to use.
+
 | [NestedDNDTest](https://github.com/corupta/react-native-nested-dnd/blob/master/examples/examples/NestedDNDTest.js) |
 | ------ |
-| ![NestedDNDTest](https://github.com/corupta/react-native-nested-dnd/blob/master/img/NestedDNDTest.gif?raw=true) |
+| ![NestedDNDTest](img/NestedDNDTest.gif?raw=true) |
 
 
 ### API
 
 #### NestedDND
-TODO WIP
+
+isRequired if there is a * in the name field
+
+|Name|Proptypes|Default|Description|  
+----|----|-----|---|
+|**groups** *|array||main data
+|**updateGroups** *|func||This method is called when the groups data changes after a finished drag.
+|**renderItem** *|func||render item view
+|**renderGroupHeader** *|func||render group header view
+|**groupKeyExtractor**|func|`(g) => g.key`|(group) => key
+|**itemKeyExtractor**|func|`(i) => i.key`|(item) => key
+|**groupToItemsKey**|string|`"items"`|which property of each group contains an array of items (eg: group.items)
+|**onGroupHeaderPress**|func||(group) => void
+|**onItemPress**|func||(item) => void
+|**movedWrapStyle**| StyleProp<ViewStyle> |`backgroundColor: 'blue, zIndex:999`|style
+|**ghostStyle**| StyleProp<ViewStyle> |`{opacity:0.5}`|style
+|**renderHeaderView**|element||
+|**headerViewHeight**|number||
+|**renderBottomView**|element||
+|**bottomViewHeight**|number||
 
 
 ### Known Issues

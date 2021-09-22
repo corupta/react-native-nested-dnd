@@ -15,10 +15,11 @@ interface NestedDNDProps {
   groups: GroupData[];
   updateGroups: (groups: GroupData[]) => void;
   renderItem: (item: ItemData) => React.ReactElement<any>;
+
   renderGroupHeader: (group: GroupData) => React.ReactElement<any>;
-  groupKeyExtractor: (group: GroupData) => string;
-  itemKeyExtractor: (item: ItemData) => string;
-  groupToItemsKey: string;
+  groupKeyExtractor?: (group: GroupData) => string;
+  itemKeyExtractor?: (item: ItemData) => string;
+  groupToItemsKey?: string;
 
   onGroupHeaderPress?: (group: GroupData) => void;
   onItemPress?: (item: ItemData) => void;
