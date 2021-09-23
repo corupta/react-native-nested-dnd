@@ -28,7 +28,7 @@ class CustomAnySizeDragSortableView extends AnySizeDragSortableView {
       setTimeout(() => {
         const realIndex = this.props.dataSource.indexOf(item);
         superStartTouch(item, realIndex);
-      }, 10);
+      }, 25);
     };
     const superMove = this.move;
     this.move = (fromKey, toKey, vy, isDiffline) => {
