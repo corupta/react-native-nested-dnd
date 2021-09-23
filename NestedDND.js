@@ -54,7 +54,7 @@ class NestedDND extends React.PureComponent {
     this.calculateData(props);
     this.calculateFixedItemKeys(this.state);
   }
-  componentWillReceiveProps(nextProps, nextContext) {
+  UNSAFE_componentWillReceiveProps(nextProps, nextContext) {
     const shouldRecalculateData = [
       'groups',
       'groupKeyExtractor',
@@ -65,7 +65,7 @@ class NestedDND extends React.PureComponent {
       this.calculateData(nextProps);
     }
   }
-  componentWillUpdate(nextProps, nextState, nextContext) {
+  UNSAFE_componentWillUpdate(nextProps, nextState, nextContext) {
     const shouldRecalculateFixedItemKeys = ['mode', 'tmpItemData'].reduce(
       (acc, key) => acc || this.state[key] !== nextState[key],
       false,
