@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View, StyleSheet, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {AnySizeDragSortableView} from 'react-native-drag-sort-cr';
+import useRefMemo from './utils/useRefMemo';
 
 const styles = StyleSheet.create({
   groupContainer: {
@@ -21,27 +22,62 @@ class CustomAnySizeDragSortableView extends AnySizeDragSortableView {
       if (fixedItemKeys && fixedItemKeys.includes(key)) {
         return;
       }
-      if (item.isGroup) {
-        this.layoutMap.clear();
-      }
+      superStartTouch(item, index);
       this.props.onDragStart(item, index);
-      setTimeout(() => {
-        const realIndex = this.props.dataSource.indexOf(item);
-        superStartTouch(item, realIndex);
-      }, 25);
     };
     const superMove = this.move;
     this.move = (fromKey, toKey, vy, isDiffline) => {
       const fixedItemKeys = this.props.fixedItemKeys;
-      if (fixedItemKeys && fixedItemKeys.includes(toKey)) {
+      const fromIndex = this.keyToIndexMap.get(fromKey);
+      const fromItem = this.props.dataSource[fromIndex];
+      let finalToKey = toKey;
+      if (fromItem.isGroup) {
+        let toIndex = this.keyToIndexMap.get(toKey);
+        if (toIndex < fromIndex) {
+          while (
+            this.props.dataSource[toIndex] &&
+            !this.props.dataSource[toIndex].isGroup
+          ) {
+            --toIndex;
+          }
+          // if (toIndex < 0) return;
+          finalToKey = this.props.keyExtractor(this.props.dataSource[toIndex]);
+          if (fixedItemKeys && fixedItemKeys.includes(finalToKey)) {
+            return;
+          }
+        } else {
+          ++toIndex;
+          while (
+            this.props.dataSource[toIndex] &&
+            !this.props.dataSource[toIndex].isGroup
+          ) {
+            ++toIndex;
+          }
+          --toIndex;
+          finalToKey = this.props.keyExtractor(this.props.dataSource[toIndex]);
+          while (
+            this.props.dataSource[toIndex] &&
+            !this.props.dataSource[toIndex].isGroup
+          ) {
+            --toIndex;
+          }
+          const toGroupKey = this.props.keyExtractor(
+            this.props.dataSource[toIndex],
+          );
+          if (fixedItemKeys && fixedItemKeys.includes(toGroupKey)) {
+            return;
+          }
+        }
+      } else if (fixedItemKeys && fixedItemKeys.includes(toKey)) {
         return;
       }
-      superMove(fromKey, toKey, vy, isDiffline);
+      superMove(fromKey, finalToKey, vy, isDiffline);
     };
   }
 }
 
 const defaultKeyExtractor = props => props.key;
+const countExtractor = props => props.count || 1;
 
 class NestedDND extends React.PureComponent {
   constructor(props) {
@@ -52,8 +88,8 @@ class NestedDND extends React.PureComponent {
       mode: null,
     };
     this.calculateData(props);
-    this.calculateFixedItemKeys(this.state);
   }
+
   UNSAFE_componentWillReceiveProps(nextProps, nextContext) {
     const shouldRecalculateData = [
       'groups',
@@ -65,47 +101,37 @@ class NestedDND extends React.PureComponent {
       this.calculateData(nextProps);
     }
   }
-  UNSAFE_componentWillUpdate(nextProps, nextState, nextContext) {
-    const shouldRecalculateFixedItemKeys = ['mode', 'tmpItemData'].reduce(
-      (acc, key) => acc || this.state[key] !== nextState[key],
-      false,
-    );
-    if (shouldRecalculateFixedItemKeys) {
-      this.calculateFixedItemKeys(nextState);
-    }
-  }
 
   calculateData = props => {
     const {groups, groupKeyExtractor, itemKeyExtractor, groupToItemsKey} =
       props;
     const nextItems = [];
-    const nextGroups = [];
     groups.forEach(group => {
       const groupKey = groupKeyExtractor(group);
       const groupItems = group[groupToItemsKey];
-      const groupData = {key: `g-${groupKey}`, data: group, isGroup: true};
+      const groupData = {
+        key: `g-${groupKey}`,
+        data: group,
+        isGroup: true,
+        count: groupItems.length + 1,
+      };
       nextItems.push(groupData);
-      nextGroups.push(groupData);
       groupItems.forEach(groupItem => {
         const itemKey = itemKeyExtractor(groupItem);
         nextItems.push({key: `i-${itemKey}`, data: groupItem});
       });
     });
-    this.itemDataSource = nextItems;
-    this.groupDataSource = nextGroups;
-    this.state.tmpItemData = this.itemDataSource;
-    this.state.tmpGroupData = this.groupDataSource;
-  };
-
-  calculateFixedItemKeys = state => {
-    const {mode, tmpGroupData, tmpItemData} = state;
-    const res = [];
-    (mode === 'group' ? tmpGroupData : tmpItemData).forEach(item => {
+    const fixedItemKeys = [];
+    nextItems.forEach(item => {
       if (item.data.isFixed) {
-        res.push(item.key);
+        fixedItemKeys.push(item.key);
       }
     });
-    this.fixedItemKeys = res;
+    this.fixedItemKeys = fixedItemKeys;
+    // write to state directly instead of using setState
+    // because this func is called only when props change or in constructor
+    // no need to trigger a separate render
+    this.state.tmpItemData = nextItems;
   };
 
   handleDragStart = item => {
@@ -116,32 +142,32 @@ class NestedDND extends React.PureComponent {
   };
 
   handleDragEnd = () => {
-    const {updateGroups, groupToItemsKey, itemKeyExtractor} = this.props;
-    const {mode, tmpGroupData, tmpItemData} = this.state;
+    const {groups, updateGroups, groupToItemsKey, itemKeyExtractor} =
+      this.props;
+    const {mode, tmpItemData} = this.state;
+    const nextGroups = [];
+    tmpItemData.forEach(({data, isGroup}) => {
+      if (isGroup) {
+        nextGroups.push({...data, [groupToItemsKey]: []});
+      } else {
+        nextGroups[nextGroups.length - 1][groupToItemsKey].push(data);
+      }
+    });
     if (mode === 'group') {
-      updateGroups(tmpGroupData.map(({data}) => data));
+      updateGroups(nextGroups);
     } else if (mode === 'item') {
-      const nextGroups = [];
-      tmpItemData.forEach(({data, isGroup}) => {
-        if (isGroup) {
-          nextGroups.push({...data, [groupToItemsKey]: []});
-        } else {
-          nextGroups[nextGroups.length - 1][groupToItemsKey].push(data);
-        }
-      });
       const finalGroups = [];
-      this.groupDataSource.forEach((group, index) => {
+      groups.forEach((group, index) => {
         const nextGroup = nextGroups[index];
         let groupItemsChanged =
-          group.data[groupToItemsKey].length !==
-          nextGroup[groupToItemsKey].length;
+          group[groupToItemsKey].length !== nextGroup[groupToItemsKey].length;
         if (!groupItemsChanged) {
           for (
             let itemIndex = 0;
             itemIndex < nextGroup[groupToItemsKey].length;
             ++itemIndex
           ) {
-            const prevItem = group.data[groupToItemsKey][itemIndex];
+            const prevItem = group[groupToItemsKey][itemIndex];
             const nextItem = nextGroup[groupToItemsKey][itemIndex];
             if (itemKeyExtractor(prevItem) !== itemKeyExtractor(nextItem)) {
               groupItemsChanged = true;
@@ -152,7 +178,7 @@ class NestedDND extends React.PureComponent {
         if (groupItemsChanged) {
           finalGroups.push(nextGroup);
         } else {
-          finalGroups.push(group.data);
+          finalGroups.push(group);
         }
       });
       updateGroups(finalGroups);
@@ -164,45 +190,28 @@ class NestedDND extends React.PureComponent {
   };
 
   handleDataChange = (nextData, callback) => {
-    const {mode} = this.state;
     this.setState(
       {
-        [mode === 'group' ? 'tmpGroupData' : 'tmpItemData']: nextData,
+        tmpItemData: nextData,
       },
       callback,
     );
   };
 
   renderItem = (renderProps, index) => {
-    const {
-      renderItem,
-      renderGroupHeader,
-      itemKeyExtractor,
-      groupToItemsKey,
-      onGroupHeaderPress,
-      onItemPress,
-    } = this.props;
-    const {mode} = this.state;
+    const {renderItem, renderGroupHeader, onGroupHeaderPress, onItemPress} =
+      this.props;
     let children;
-    if (mode === 'group') {
-      children = (
-        <View style={styles.groupContainer}>
-          {renderGroupHeader(renderProps.data)}
-          {renderProps.data[groupToItemsKey].map(item => (
-            <View key={itemKeyExtractor(item)}>{renderItem(item)}</View>
-          ))}
-        </View>
-      );
-    } else if (renderProps.isGroup) {
+    if (renderProps.isGroup) {
       children = renderGroupHeader(renderProps.data);
     } else {
       children = renderItem(renderProps.data);
     }
     return (
       <TouchableOpacity
-        onLongPress={() =>
-          this.dragSortableRef.current.startTouch(renderProps, index)
-        }
+        onLongPress={() => {
+          this.dragSortableRef.current.startTouch(renderProps, index);
+        }}
         onPress={() => {
           const onPress = renderProps.isGroup
             ? onGroupHeaderPress
@@ -227,13 +236,14 @@ class NestedDND extends React.PureComponent {
       ghostStyle,
     } = this.props;
 
-    const {mode, tmpGroupData, tmpItemData} = this.state;
+    const {tmpItemData} = this.state;
 
     return (
       <CustomAnySizeDragSortableView
         ref={this.dragSortableRef}
-        dataSource={mode === 'group' ? tmpGroupData : tmpItemData}
+        dataSource={tmpItemData}
         keyExtractor={defaultKeyExtractor}
+        countExtractor={countExtractor}
         renderItem={this.renderItem}
         onDataChange={this.handleDataChange}
         onDragStart={this.handleDragStart}
