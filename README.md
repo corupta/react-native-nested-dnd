@@ -5,7 +5,7 @@ Nested group drag and drop for react native
 [![npm](https://img.shields.io/npm/v/react-native-nested-dnd.svg?style=flat)](https://npmjs.com/package/react-native-nested-dnd)
 
 ### Summary
-I've implemented a hacky wrapper to use 
+I've implemented a ~~hacky~~ wrapper to use 
 [react-native-drag-sort](https://github.com/mochixuan/react-native-drag-sort) 
 by [@mochixuan](https://github.com/mochixuan) with nested groups.
 
@@ -21,8 +21,13 @@ Special thanks to [@mochixuan](https://github.com/mochixuan) for building such a
 The original package can work with custom sized items.
 My way around is to convert groups and nested items into a flattened list.
 Then, each item can be dragged & drop within and across different groups.
-However, when a group is dragged, I quickly hide the items and put them inside the group view,
-so that all items within the group will also be dragged. Finally, I revert this process when the drag ends.
+~~However, when a group is dragged, I quickly hide the items and put them inside the group view,
+so that all items within the group will also be dragged. Finally, I revert this process when the drag ends.~~
+Updated the core to take a count parameter, to make it move that many items when each item is moved. 
+So group items' count are (items.length+1) whereas normal items' are 1. 
+That way, when a group is moved, its children are also moved, and when a drag finishes, 
+I re-create next groups data format, and call `updateGroups` prop. 
+As a result, `groups` prop changes and the 1d flattened list is recreated from new `groups` (we start over)
 Thus, we can achieve nested drag&drop.
 
 ### Installation
