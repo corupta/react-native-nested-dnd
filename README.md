@@ -85,11 +85,11 @@ isRequired if there is a * in the name field
 ~~* When a group is dragged, due to the nature of my hacky implementation it blinks at first. Unfortunately, this won't be fixed. To fix it one might need to come up with a ground-up implementation that supports nested drag/drop. (Need to re-write current DND core)~~ 
 
 ### Roadmap
-[X] Make the underlying core support multiple item push
-[X] Prevent underlying core's layout animation applying to flying item. (Replace LayoutAnimation with [re-animated](https://docs.swmansion.com/react-native-reanimated/docs/api/LayoutAnimations/layoutTransitions)). 
-    [X] Did the replacement but it looks like current reanimated doesn't work well with rn 0.65.1 
-    [ ] ** It is being actively developed, so let's wait for it to be stabilized. ** 
+* [X] Make the underlying core support multiple item push
+* [X] Prevent underlying core's layout animation applying to flying item. (Replace LayoutAnimation with [re-animated](https://docs.swmansion.com/react-native-reanimated/docs/api/LayoutAnimations/layoutTransitions)). 
+    * [X] Did the replacement but it looks like current reanimated doesn't work well with rn 0.65.1 
+    * [ ] ~~It is being actively developed, so let's wait for it to be stabilized.~~ 
         * (When trying to run example `I get error Invariant Violation: `new NativeEventEmitter()` requires a non-null argument.`)
-    [X] Made it  work with re-animated v1's Transition API
-[ ] Rewrite with React.PureComponent instead of functional component
+    * [X] Made it  work with re-animated v1's Transition API
+* [ ] Rewrite with React.PureComponent instead of functional component
 
