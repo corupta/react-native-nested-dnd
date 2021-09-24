@@ -37,7 +37,7 @@ class CustomAnySizeDragSortableView extends AnySizeDragSortableView {
           while (
             this.props.dataSource[toIndex] &&
             !this.props.dataSource[toIndex].isGroup
-          ) {
+            ) {
             --toIndex;
           }
           // if (toIndex < 0) return;
@@ -50,7 +50,7 @@ class CustomAnySizeDragSortableView extends AnySizeDragSortableView {
           while (
             this.props.dataSource[toIndex] &&
             !this.props.dataSource[toIndex].isGroup
-          ) {
+            ) {
             ++toIndex;
           }
           --toIndex;
@@ -58,7 +58,7 @@ class CustomAnySizeDragSortableView extends AnySizeDragSortableView {
           while (
             this.props.dataSource[toIndex] &&
             !this.props.dataSource[toIndex].isGroup
-          ) {
+            ) {
             --toIndex;
           }
           const toGroupKey = this.props.keyExtractor(
