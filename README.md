@@ -82,7 +82,8 @@ isRequired if there is a * in the name field
 ### Known Issues
 
 * If a group is empty, cannot drag and drop an item inside it, for some reason. (I guess, need to update core so that it will support different heights better)
-~~* When a group is dragged, due to the nature of my hacky implementation it blinks at first. Unfortunately, this won't be fixed. To fix it one might need to come up with a ground-up implementation that supports nested drag/drop. (Need to re-write current DND core)~~ 
+~~* When a group is dragged, due to the nature of my hacky implementation it blinks at first. Unfortunately, this won't be fixed. To fix it one might need to come up with a ground-up implementation that supports nested drag/drop. (Need to re-write current DND core)~~
+* Group drag causes a different kind of flicker, now?
 
 ### Roadmap
 * [X] Make the underlying core support multiple item push
@@ -91,5 +92,6 @@ isRequired if there is a * in the name field
     * [ ] ~~It is being actively developed, so let's wait for it to be stabilized.~~ 
         * (When trying to run example `I get error Invariant Violation: `new NativeEventEmitter()` requires a non-null argument.`)
     * [X] Made it  work with re-animated v1's Transition API
-* [ ] Rewrite with React.PureComponent instead of functional component
+* [X] Rewrite with React.PureComponent instead of functional component
+* [ ] Find out the source of group drag flicker, and fix it (may need to update core, again)
 
