@@ -34,10 +34,18 @@ Thus, we can achieve nested drag&drop.
 
 ```bash
 yarn add react-native-nested-dnd
+yarn add react-native-reanimated@^1.13.3
 or
 npm i react-native-nested-dnd --save 
+npm i react-native-reanimated@^1.13.3 --save
 
-export { NestedDND }
+cd ios
+pod install
+```
+
+### Usage
+```js
+import { NestedDND } from 'react-native-nested-dnd'
 ```
 
 ### Tip
