@@ -71,7 +71,7 @@ class CustomAnySizeDragSortableView extends AnySizeDragSortableView {
       } else if (fixedItemKeys && fixedItemKeys.includes(toKey)) {
         return;
       }
-      superMove(fromKey, finalToKey, vy, isDiffline);
+      return superMove(fromKey, finalToKey, vy, isDiffline);
     };
   }
 }
